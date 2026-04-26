@@ -26,8 +26,8 @@ history_db: list = []
 pwd    = CryptContext(schemes=["bcrypt"])
 bearer = HTTPBearer()
 
-def hash_password(plain): return pwd.hash(plain)
-def verify_password(plain, hashed): return pwd.verify(plain, hashed)
+def hash_password(plain): return pwd.hash(plain[:72])
+def verify_password(plain, hashed): return pwd.verify(plain[:72], hashed)
 
 def create_token(username):
     payload = {"sub": username, "exp": datetime.utcnow() + timedelta(hours=TOKEN_EXPIRY_HOURS)}
@@ -77,6 +77,7 @@ async def register(request: Request):
     users_db[username] = hash_password(password)
     return xml_response({"status": "success", "message": "Registration successful", "username": username, "token": create_token(username)})
 
+
 @app.post("/auth/login", tags=["Auth"])
 async def login(request: Request):
     data     = parse_xml_body(await request.body())
@@ -86,6 +87,7 @@ async def login(request: Request):
     if not hashed or not verify_password(password, hashed):
         return xml_response({"status": "error", "message": "Invalid username or password"})
     return xml_response({"status": "success", "message": "Login successful", "username": username, "token": create_token(username)})
+
 
 # ── Weather ────────────────────────────────────────────────────────────────────
 @app.get("/weather/history/mine", tags=["Weather"])
@@ -101,6 +103,7 @@ def my_history(username: str = Depends(get_current_user)):
             ET.SubElement(entry, k).text = str(v)
     xml_str = '<?xml version="1.0" encoding="UTF-8"?>\n' + ET.tostring(root, encoding="unicode")
     return Response(content=xml_str, media_type="application/xml")
+
 
 @app.get("/weather/{city}", tags=["Weather"])
 def get_weather(city: str, username: str = Depends(get_current_user)):
@@ -126,10 +129,14 @@ def get_weather(city: str, username: str = Depends(get_current_user)):
                          "windspeed_kmh": current["windspeed"], "condition": condition,
                          "queried_by": username, "source": "Open-Meteo (open-meteo.com)"})
 
+
+# ── Root ───────────────────────────────────────────────────────────────────────
 @app.get("/", tags=["Info"])
 def root():
     return xml_response({"message": "Weather XML API is running", "docs": "/docs"})
 
+
+# ── WMO Weather Code → text ────────────────────────────────────────────────────
 def weather_code_to_text(code):
     if code == 0:  return "Clear sky"
     if code <= 2:  return "Partly cloudy"
