@@ -123,4 +123,4 @@ weather-api/
 ```
 
 ## Live URL
-Deployed on Render: https://weather-api-xxxx.onrender.com
+Deployed on Render: https://weather-api-p3wd.onrender.com/
