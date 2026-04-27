@@ -1,7 +1,7 @@
 # Weather XML API — Web Services Implementation Assignment
 
 A **secured REST API using XML** built with Python + FastAPI that integrates with an external weather service (Open-Meteo), demonstrating real service-to-service communication.
-
+ GIT-REPO : https://github.com/YashBiware/weather-api
 ## Features
 - JWT Authentication (Register / Login)
 - All requests and responses in **XML format**
